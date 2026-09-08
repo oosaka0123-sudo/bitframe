@@ -10,6 +10,25 @@
     heroVideo.removeAttribute('autoplay');
   }
 
+  const motionToggle = document.querySelector('.hero-motion-toggle');
+  if (heroVideo && motionToggle) {
+    const syncMotionToggle = () => {
+      motionToggle.textContent = heroVideo.paused ? 'PLAY' : 'PAUSE';
+      motionToggle.setAttribute('aria-label', heroVideo.paused ? '映像を再生' : '映像を一時停止');
+    };
+    if (reducedMotion) {
+      motionToggle.hidden = true;
+    } else {
+      motionToggle.addEventListener('click', async () => {
+        if (heroVideo.paused) { try { await heroVideo.play(); } catch {} } else { heroVideo.pause(); }
+        syncMotionToggle();
+      });
+      heroVideo.addEventListener('play', syncMotionToggle);
+      heroVideo.addEventListener('pause', syncMotionToggle);
+      syncMotionToggle();
+    }
+  }
+
   const revealItems = [...document.querySelectorAll('[data-reveal]')];
   if ('IntersectionObserver' in window && !reducedMotion) {
     const revealObserver = new IntersectionObserver((entries, observer) => {

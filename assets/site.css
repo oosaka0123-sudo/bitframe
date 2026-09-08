@@ -556,7 +556,7 @@ button, input, textarea, select { font: inherit; }
   }
   .hero-meta { grid-column: 1 / -1; font-size: 8px; }
   .hero-meta span:last-child { text-align: right; }
-  .hero-title { inset: 17.5vh -1.8vw auto; font-size: clamp(76px, 27vw, 122px); line-height: .75; letter-spacing: -.085em; }
+  .hero-title { inset: 17.5vh -1.8vw auto; font-size: clamp(74px, 24vw, 105px); line-height: .75; letter-spacing: -.085em; }
   .hero-word--frame { margin-top: 1.37em; text-align: right; }
   .hero-window {
     grid-column: 1 / -1;

@@ -4,6 +4,12 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+  const heroVideo = document.querySelector('.hero-video');
+  if (reducedMotion && heroVideo) {
+    heroVideo.pause();
+    heroVideo.removeAttribute('autoplay');
+  }
+
   const revealItems = [...document.querySelectorAll('[data-reveal]')];
   if ('IntersectionObserver' in window && !reducedMotion) {
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -35,12 +41,13 @@
 
     const heroFrame = document.querySelector('[data-depth]');
     if (heroFrame) {
+      const depth = parseFloat(heroFrame.dataset.depth) || 18;
       let scheduled = false;
       const updateDepth = () => {
         const rect = heroFrame.getBoundingClientRect();
         const viewport = window.innerHeight || 1;
         const progress = Math.max(-1, Math.min(1, (rect.top + rect.height / 2 - viewport / 2) / viewport));
-        heroFrame.style.setProperty('--depth-y', `${(progress * -18).toFixed(1)}px`);
+        heroFrame.style.setProperty('--depth-y', `${(progress * -depth).toFixed(1)}px`);
         scheduled = false;
       };
       window.addEventListener('scroll', () => {
@@ -52,10 +59,11 @@
     }
   }
 
-  document.querySelectorAll('.mobile-menu a').forEach((link) => {
-    link.addEventListener('click', () => {
-      const menu = link.closest('details');
-      if (menu) menu.open = false;
-    });
+  document.querySelectorAll('.mobile-menu').forEach((menu) => {
+    const summary = menu.querySelector('summary');
+    const syncLabel = () => summary?.setAttribute('aria-label', menu.open ? 'メニューを閉じる' : 'メニューを開く');
+    menu.addEventListener('toggle', syncLabel);
+    syncLabel();
+    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => { menu.open = false; }));
   });
 })();

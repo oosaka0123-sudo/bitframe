@@ -1,0 +1,118 @@
+name: Deploy BitFrame to Lolipop
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        type: choice
+        options:
+          - preview
+          - production
+        default: preview
+      confirm_production:
+        description: Type DEPLOY_BITFRAME for production
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bitframe-lolipop-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_SCHEME: ${{ vars.LOLIPOP_FTP_SCHEME }}
+      DEPLOY_PORT: ${{ vars.LOLIPOP_FTP_PORT }}
+      DEPLOY_DIR: ${{ vars.BITFRAME_DEPLOY_DIR }}
+      SITE_URL: ${{ vars.BITFRAME_SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.LOLIPOP_FTP_HOST }}
+          DEPLOY_USER: ${{ secrets.LOLIPOP_FTP_USER }}
+          DEPLOY_PASSWORD: ${{ secrets.LOLIPOP_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          set +x
+          [[ -n "$DEPLOY_HOST" && -n "$DEPLOY_USER" && -n "$DEPLOY_PASSWORD" ]] || { echo "Lolipop FTP secrets are incomplete."; exit 1; }
+          [[ "$DEPLOY_SCHEME" =~ ^(ftp|ftps)$ ]] || { echo "FTP scheme is invalid."; exit 1; }
+          [[ "$DEPLOY_PORT" =~ ^[0-9]{1,5}$ ]] || { echo "FTP port is invalid."; exit 1; }
+          [[ "$DEPLOY_DIR" =~ ^/[A-Za-z0-9._/-]*$ && "$DEPLOY_DIR" != *".."* ]] || { echo "BitFrame deploy directory is invalid."; exit 1; }
+          [[ "$SITE_URL" =~ ^https://[A-Za-z0-9.-]+/?$ ]] || { echo "BitFrame site URL is invalid."; exit 1; }
+          if [[ "${{ inputs.target }}" == "production" && "${{ inputs.confirm_production }}" != "DEPLOY_BITFRAME" ]]; then
+            echo "Production confirmation text is missing."; exit 1
+          fi
+
+      - name: Build deployment overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp index.html works.html service.html flow-price.html contact.html _site/
+          cp -R assets _site/
+          if [[ "${{ inputs.target }}" == "preview" ]]; then
+            python - <<'PY'
+          from pathlib import Path
+          tag = '<meta name="robots" content="noindex,nofollow">'
+          for p in Path('_site').glob('*.html'):
+              s = p.read_text(encoding='utf-8')
+              p.write_text(s.replace('</head>', tag + '</head>'), encoding='utf-8')
+          PY
+          fi
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Upload non-destructive overlay
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.LOLIPOP_FTP_HOST }}
+          DEPLOY_USER: ${{ secrets.LOLIPOP_FTP_USER }}
+          DEPLOY_PASSWORD: ${{ secrets.LOLIPOP_FTP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          set +x
+          if [[ "${{ inputs.target }}" == "preview" ]]; then
+            remote="${DEPLOY_DIR%/}/_renewal-preview"
+          else
+            remote="${DEPLOY_DIR%/}"
+          fi
+          lftp <<LFTP
+          set cmd:fail-exit yes
+          set net:max-retries 2
+          set net:timeout 20
+          set ssl:verify-certificate yes
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          open -u "$DEPLOY_USER","$DEPLOY_PASSWORD" "$DEPLOY_SCHEME://$DEPLOY_HOST:$DEPLOY_PORT"
+          mirror --reverse --verbose=1 --parallel=2 --no-perms ./_site/ "$remote/"
+          bye
+          LFTP
+
+      - name: Verify deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ inputs.target }}" == "preview" ]]; then
+            base="${SITE_URL%/}/_renewal-preview"
+          else
+            base="${SITE_URL%/}"
+          fi
+          curl --fail --silent --show-error "$base/" | grep -Fq 'AI CREATIVE FILM STUDIO'
+          curl --fail --silent --show-error "$base/works.html" >/dev/null
+          curl --fail --silent --show-error "$base/service.html" >/dev/null
+          curl --fail --silent --show-error "$base/flow-price.html" >/dev/null
+          curl --fail --silent --show-error "$base/contact.html" >/dev/null
+          echo "BitFrame ${{ inputs.target }} verified at $base/"

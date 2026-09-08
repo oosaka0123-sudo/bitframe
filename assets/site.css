@@ -129,6 +129,7 @@ button, input, textarea, select { font: inherit; }
   grid-template-rows: auto 1fr auto;
   gap: 12px clamp(8px, 1.2vw, 20px);
   isolation: isolate;
+  overflow-x: clip;
 }
 .hero::before {
   content: "";
@@ -636,3 +637,9 @@ button, input, textarea, select { font: inherit; }
   [data-reveal] { transform: none !important; }
   .hero-window, .work-media { transform: none !important; }
 }
+
+.hero-video{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.86) contrast(1.04)}
+@media(prefers-reduced-motion:reduce){.hero-video{display:none}.hero-window{background:url("media/hero-poster.webp") center/cover no-repeat}}
+
+.work-media>img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s var(--ease)}
+.work-link:hover .work-media>img{transform:scale(1.025)}

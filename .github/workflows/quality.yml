@@ -1,0 +1,26 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  static-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Site contract
+        run: python scripts/check_site.py
+      - name: JavaScript syntax
+        run: node --check assets/site.js
+      - name: Diff whitespace
+        run: git diff --check HEAD^

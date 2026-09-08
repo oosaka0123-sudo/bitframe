@@ -643,3 +643,6 @@ button, input, textarea, select { font: inherit; }
 
 .work-media>img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s var(--ease)}
 .work-link:hover .work-media>img{transform:scale(1.025)}
+
+.works .section-intro{color:#4d4a44}
+

@@ -491,17 +491,19 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 900px) {
   :root { --header-h: 64px; }
   .desktop-nav { display: none; }
-  .mobile-menu { display: block; position: relative; }
+  .mobile-menu { display: block; position: relative; color: #fff; }
   .mobile-menu summary {
+    position: relative;
     list-style: none;
-    width: 46px; height: 44px;
+    width: 76px; height: 44px;
     display: grid;
     align-content: center;
     gap: 6px;
     cursor: pointer;
   }
   .mobile-menu summary::-webkit-details-marker { display: none; }
-  .mobile-menu summary span { display: block; width: 24px; height: 1px; margin-left: auto; background: currentColor; transition: transform .3s var(--ease); }
+  .mobile-menu summary::before { content: "MENU"; position: absolute; right: 34px; top: 50%; transform: translateY(-50%); font-size: 8px; font-weight: 700; letter-spacing: .15em; }
+  .mobile-menu summary span { display: block; width: 24px; height: 1px; margin-left: auto; background: #fff; transition: transform .3s var(--ease); }
   .mobile-menu[open] summary span:first-child { transform: translateY(3.5px) rotate(45deg); }
   .mobile-menu[open] summary span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
   .mobile-menu nav {
@@ -557,7 +559,7 @@ button, input, textarea, select { font: inherit; }
   .hero-meta { grid-column: 1 / -1; font-size: 8px; }
   .hero-meta span:last-child { text-align: right; }
   .hero-title { inset: 17.5vh -1.8vw auto; font-size: clamp(74px, 24vw, 105px); line-height: .75; letter-spacing: -.085em; }
-  .hero-word--frame { margin-top: 1.37em; text-align: right; }
+  .hero-word--frame { margin-top: 1.37em; text-align: left; padding-left: 10vw; transform: scaleX(.86); transform-origin: left center; }
   .hero-window {
     grid-column: 1 / -1;
     grid-row: 2;

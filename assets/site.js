@@ -43,6 +43,20 @@
     revealItems.forEach((item) => item.classList.add('is-seen'));
   }
 
+  const flowingStatement = document.querySelector('.flowing-statement');
+  if (flowingStatement) {
+    if ('IntersectionObserver' in window && !reducedMotion) {
+      const statementObserver = new IntersectionObserver(([entry], observer) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-flowing');
+        observer.unobserve(entry.target);
+      }, { threshold: 0.28 });
+      statementObserver.observe(flowingStatement);
+    } else {
+      flowingStatement.classList.add('is-flowing');
+    }
+  }
+
   if (finePointer && !reducedMotion) {
     document.querySelectorAll('[data-tilt]').forEach((media) => {
       media.addEventListener('pointermove', (event) => {

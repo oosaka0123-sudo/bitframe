@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  document.documentElement.classList.add('js-motion');
+
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
@@ -29,6 +31,23 @@
     }
   }
 
+  const header = document.querySelector('[data-header]');
+  const hero = document.querySelector('.hero');
+  if (header && hero) {
+    let headerFrame = 0;
+    const syncHeader = () => {
+      header.classList.toggle('is-past-hero', hero.getBoundingClientRect().bottom <= header.offsetHeight);
+      headerFrame = 0;
+    };
+    const requestHeaderSync = () => {
+      if (headerFrame) return;
+      headerFrame = requestAnimationFrame(syncHeader);
+    };
+    window.addEventListener('scroll', requestHeaderSync, { passive: true });
+    window.addEventListener('resize', requestHeaderSync, { passive: true });
+    syncHeader();
+  }
+
   const revealItems = [...document.querySelectorAll('[data-reveal]')];
   if ('IntersectionObserver' in window && !reducedMotion) {
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -41,6 +60,20 @@
     revealItems.forEach((item) => revealObserver.observe(item));
   } else {
     revealItems.forEach((item) => item.classList.add('is-seen'));
+  }
+
+  const cutSections = [...document.querySelectorAll('[data-cut]')];
+  if ('IntersectionObserver' in window && !reducedMotion) {
+    const cutObserver = new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-cut');
+        observer.unobserve(entry.target);
+      }
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.02 });
+    cutSections.forEach((section) => cutObserver.observe(section));
+  } else {
+    cutSections.forEach((section) => section.classList.add('is-cut'));
   }
 
   const flowingStatement = document.querySelector('.flowing-statement');

@@ -30,6 +30,12 @@ for page in PAGES:
 for asset in ['assets/site.css','assets/site.js','assets/subpage.css','assets/media/hero.mp4','assets/media/hero-poster.webp']:
     if not (ROOT/asset).exists(): errors.append(f'missing asset: {asset}')
 
+index_text=(ROOT/'index.html').read_text(encoding='utf-8')
+if 'つくる速度を、表現の深さへ。' not in index_text:
+    errors.append('index.html: editorial statement copy missing or corrupted')
+if '????' in index_text:
+    errors.append('index.html: suspicious question-mark corruption detected')
+
 if errors:
     print('\n'.join(errors)); raise SystemExit(1)
 print('BitFrame site QA: OK')

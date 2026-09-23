@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p _site
-          cp index.html works.html service.html flow-price.html contact.html _site/
+          cp index.html works.html service.html flow-price.html studio.html faq.html contact.html privacy.html terms.html sitemap.xml static-sitemap.xml robots.txt _site/
           cp -R assets _site/
           python - <<'PY'
           from pathlib import Path

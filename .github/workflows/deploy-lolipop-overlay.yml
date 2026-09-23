@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html works.html service.html flow-price.html contact.html _site/
+          cp index.html works.html service.html flow-price.html studio.html faq.html contact.html privacy.html terms.html sitemap.xml static-sitemap.xml robots.txt _site/
           cp -R assets _site/
           if [[ "${{ inputs.target }}" == "preview" ]]; then
             python - <<'PY'
@@ -110,9 +110,9 @@ jobs:
           else
             base="${SITE_URL%/}"
           fi
-          curl --fail --silent --show-error "$base/" | grep -Fq 'AI CREATIVE FILM STUDIO'
-          curl --fail --silent --show-error "$base/works.html" >/dev/null
-          curl --fail --silent --show-error "$base/service.html" >/dev/null
-          curl --fail --silent --show-error "$base/flow-price.html" >/dev/null
-          curl --fail --silent --show-error "$base/contact.html" >/dev/null
+          curl --fail --silent --show-error "$base/" -o /tmp/bf-home
+          grep -Fq 'AI CREATIVE FILM STUDIO' /tmp/bf-home
+          for page in works.html service.html flow-price.html studio.html faq.html contact.html privacy.html terms.html sitemap.xml static-sitemap.xml robots.txt; do
+            curl --fail --silent --show-error "$base/$page" >/dev/null
+          done
           echo "BitFrame ${{ inputs.target }} verified at $base/"

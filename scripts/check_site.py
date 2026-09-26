@@ -1,3 +1,5 @@
+[Reading 118 lines from start (total: 118 lines, 0 remaining)]
+
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -112,7 +114,17 @@ faq = (ROOT / 'faq.html').read_text(encoding='utf-8')
 if '"@type":"FAQPage"' not in faq:
     errors.append('faq.html: FAQPage structured data missing')
 
+works = (ROOT / 'works.html').read_text(encoding='utf-8')
+if works.count('CONCEPT STUDY') < 6:
+    errors.append('works.html: expected at least 6 concept-study labels')
+if '<img ' in works:
+    errors.append('works.html: photo/image reuse is not allowed on the works index')
+if 'NOT CLIENT CASE STUDIES' not in works:
+    errors.append('works.html: concept-study disclaimer missing')
+
 if errors:
     print('\n'.join(errors))
     raise SystemExit(1)
 print('BitFrame site QA: OK')
+
+[executed on device: ks-pc02 (0816891f-2eb8-4c29-851c-1e77f9e9ac5d)]

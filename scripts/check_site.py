@@ -1,5 +1,3 @@
-[Reading 118 lines from start (total: 118 lines, 0 remaining)]
-
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -9,7 +7,7 @@ EXPECTED_PAGES = {
     'index.html', 'works.html', 'service.html', 'flow-price.html',
     'studio.html', 'faq.html', 'contact.html', 'privacy.html', 'terms.html'
 }
-PAGES = sorted(p.name for p in ROOT.glob('*.html') if not p.name.endswith('-fragment.html'))
+PAGES = sorted(p.name for p in ROOT.glob('*.html'))
 errors = []
 image_usage = {}
 
@@ -38,13 +36,17 @@ class Audit(HTMLParser):
             src = d.get('src')
             if src:
                 image_usage.setdefault(src, set()).add(self.page)
+
         for key in ('href', 'src'):
             v = d.get(key)
             if not v or v.startswith(('#', 'mailto:', 'tel:', 'data:')):
                 continue
             if urlparse(v).scheme:
                 continue
-            target = (ROOT / self.page).parent / v.split('?', 1)[0].split('#', 1)[0]
+            clean = v.split('?', 1)[0].split('#', 1)[0]
+            if not clean:
+                continue
+            target = (ROOT / self.page).parent / clean
             if not target.exists():
                 errors.append(f'{self.page}: missing {v}')
 
@@ -56,21 +58,29 @@ for page in PAGES:
     text = path.read_text(encoding='utf-8')
     audit = Audit(page)
     audit.feed(text)
+
     if audit.h1 != 1:
         errors.append(f'{page}: expected 1 h1, found {audit.h1}')
     if not audit.viewport:
         errors.append(f'{page}: viewport meta missing')
     if not audit.description:
         errors.append(f'{page}: description meta missing')
-    expected_canonical = 'https://bitframe.rss7.net/' if page == 'index.html' else f'https://bitframe.rss7.net/{page}'
+
+    expected_canonical = (
+        'https://bitframe.rss7.net/'
+        if page == 'index.html'
+        else f'https://bitframe.rss7.net/{page}'
+    )
     if audit.canonical != [expected_canonical]:
         errors.append(f'{page}: canonical mismatch {audit.canonical}')
+
     for required in ('works.html', 'service.html', 'flow-price.html', 'studio.html', 'contact.html'):
         if f'href="{required}"' not in text:
             errors.append(f'{page}: primary navigation missing {required}')
     for required in ('faq.html', 'privacy.html', 'terms.html'):
         if f'href="{required}"' not in text:
             errors.append(f'{page}: footer navigation missing {required}')
+
     if '????' in text:
         errors.append(f'{page}: suspicious question-mark corruption detected')
     if 'リニューアル公開までは' in text:
@@ -79,6 +89,7 @@ for page in PAGES:
 for src, pages in image_usage.items():
     if len(pages) > 1:
         errors.append(f'image reused across pages: {src} -> {sorted(pages)}')
+
 for asset in [
     'assets/site.css', 'assets/site.js', 'assets/subpage.css',
     'assets/media/hero.mp4', 'assets/media/hero-poster.webp',
@@ -93,7 +104,11 @@ if 'つくる速度を、表現の深さへ。' not in index_text:
 
 static_sitemap = (ROOT / 'static-sitemap.xml').read_text(encoding='utf-8')
 for page in sorted(EXPECTED_PAGES):
-    url = 'https://bitframe.rss7.net/' if page == 'index.html' else f'https://bitframe.rss7.net/{page}'
+    url = (
+        'https://bitframe.rss7.net/'
+        if page == 'index.html'
+        else f'https://bitframe.rss7.net/{page}'
+    )
     if url not in static_sitemap:
         errors.append(f'static-sitemap.xml: missing {url}')
 
@@ -125,4 +140,5 @@ if 'NOT CLIENT CASE STUDIES' not in works:
 if errors:
     print('\n'.join(errors))
     raise SystemExit(1)
+
 print('BitFrame site QA: OK')

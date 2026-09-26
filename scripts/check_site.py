@@ -126,4 +126,3 @@ if errors:
     print('\n'.join(errors))
     raise SystemExit(1)
 print('BitFrame site QA: OK')
-

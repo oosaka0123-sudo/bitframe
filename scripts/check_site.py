@@ -101,6 +101,11 @@ for asset in [
 index_text = (ROOT / 'index.html').read_text(encoding='utf-8')
 if 'つくる速度を、表現の深さへ。' not in index_text:
     errors.append('index.html: editorial statement copy missing or corrupted')
+for frame_name in ('Signal Bloom', 'Glass Current', 'Quiet Machine'):
+    if frame_name not in index_text:
+        errors.append(f'index.html: homepage visual frame missing {frame_name}')
+if '02 / NEW FRAMES' not in index_text:
+    errors.append('index.html: NEW FRAMES section missing')
 
 static_sitemap = (ROOT / 'static-sitemap.xml').read_text(encoding='utf-8')
 for page in sorted(EXPECTED_PAGES):

@@ -1016,7 +1016,7 @@ button, input, textarea, select { font: inherit; }
   .frame-lab::before{font-size:42vw;top:.12em}
   .frame-lab-head{display:block}
   .frame-lab-head .eyebrow{margin-bottom:34px}
-  .frame-lab-head h2{font-size:clamp(54px,16vw,76px);max-width:100%}
+  .frame-lab-head h2{font-size:clamp(48px,13.5vw,64px);max-width:100%;line-height:.82}
   .frame-lab-head>p:last-child{width:78%;margin:30px 0 0 auto;font-size:11px}
   .frame-lab-grid{display:block;margin-top:80px}
   .lab-frame{margin-top:0;margin-bottom:86px}

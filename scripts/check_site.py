@@ -127,4 +127,3 @@ if errors:
     raise SystemExit(1)
 print('BitFrame site QA: OK')
 
-[executed on device: ks-pc02 (0816891f-2eb8-4c29-851c-1e77f9e9ac5d)]

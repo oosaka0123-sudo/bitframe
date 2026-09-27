@@ -125,6 +125,69 @@
     }
   }
 
+  const serviceRows = [...document.querySelectorAll('[data-service-row]')];
+  if (serviceRows.length) {
+    if ('IntersectionObserver' in window && !reducedMotion) {
+      const serviceObserver = new IntersectionObserver((entries, observer) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-motion-seen');
+          observer.unobserve(entry.target);
+        }
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.18 });
+      serviceRows.forEach((row) => serviceObserver.observe(row));
+    } else {
+      serviceRows.forEach((row) => row.classList.add('is-motion-seen'));
+    }
+  }
+
+  const processSteps = [...document.querySelectorAll('[data-process-step]')];
+  const processSection = document.querySelector('[data-page-motion="process"]');
+  if (processSteps.length && processSection) {
+    const activateProcessStep = (step) => {
+      const index = processSteps.indexOf(step);
+      step.classList.add('is-motion-seen');
+      const progress = (index + 1) / processSteps.length;
+      const current = parseFloat(processSection.style.getPropertyValue('--process-progress')) || 0;
+      if (progress > current) processSection.style.setProperty('--process-progress', String(progress));
+    };
+    if ('IntersectionObserver' in window && !reducedMotion) {
+      const processObserver = new IntersectionObserver((entries, observer) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          activateProcessStep(entry.target);
+          observer.unobserve(entry.target);
+        }
+      }, { rootMargin: '0px 0px -18% 0px', threshold: 0.2 });
+      processSteps.forEach((step) => processObserver.observe(step));
+    } else {
+      processSection.style.setProperty('--process-progress', '1');
+      processSteps.forEach((step) => step.classList.add('is-motion-seen'));
+    }
+  }
+
+  const studioVisual = document.querySelector('[data-studio-motion]');
+  if (studioVisual && !reducedMotion) {
+    let studioFrame = 0;
+    const updateStudioMotion = () => {
+      const rect = studioVisual.getBoundingClientRect();
+      const viewport = window.innerHeight || 1;
+      const center = rect.top + rect.height / 2;
+      const progress = Math.max(-1, Math.min(1, (center - viewport / 2) / viewport));
+      studioVisual.style.setProperty('--studio-a-y', `${(progress * -10).toFixed(1)}px`);
+      studioVisual.style.setProperty('--studio-b-y', `${(progress * 14).toFixed(1)}px`);
+      studioVisual.style.setProperty('--studio-orbit-x', `${(progress * -12).toFixed(1)}px`);
+      studioVisual.style.setProperty('--studio-core-y', `${(progress * 8).toFixed(1)}px`);
+      studioFrame = 0;
+    };
+    const requestStudioMotion = () => {
+      if (studioFrame) return;
+      studioFrame = requestAnimationFrame(updateStudioMotion);
+    };
+    window.addEventListener('scroll', requestStudioMotion, { passive: true });
+    window.addEventListener('resize', requestStudioMotion, { passive: true });
+    updateStudioMotion();
+  }
   document.querySelectorAll('.mobile-menu').forEach((menu) => {
     const summary = menu.querySelector('summary');
     const syncLabel = () => summary?.setAttribute('aria-label', menu.open ? 'メニューを閉じる' : 'メニューを開く');

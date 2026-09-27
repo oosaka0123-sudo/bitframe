@@ -142,6 +142,27 @@ if '<img ' in works:
 if 'NOT CLIENT CASE STUDIES' not in works:
     errors.append('works.html: concept-study disclaimer missing')
 
+service = (ROOT / 'service.html').read_text(encoding='utf-8')
+if service.count('data-service-row') != 6 or 'data-page-motion="services"' not in service:
+    errors.append('service.html: services motion hooks missing')
+
+process_page = (ROOT / 'flow-price.html').read_text(encoding='utf-8')
+if process_page.count('data-process-step') != 5 or 'data-page-motion="process"' not in process_page:
+    errors.append('flow-price.html: process motion hooks missing')
+
+studio = (ROOT / 'studio.html').read_text(encoding='utf-8')
+if 'data-studio-motion' not in studio:
+    errors.append('studio.html: studio motion hook missing')
+
+subpage_css = (ROOT / 'assets/subpage.css').read_text(encoding='utf-8')
+if 'Subpage motion identities' not in subpage_css:
+    errors.append('assets/subpage.css: subpage motion identities missing')
+
+site_js = (ROOT / 'assets/site.js').read_text(encoding='utf-8')
+for hook in ('[data-service-row]', '[data-process-step]', '[data-studio-motion]'):
+    if hook not in site_js:
+        errors.append(f'assets/site.js: motion hook missing {hook}')
+
 if errors:
     print('\n'.join(errors))
     raise SystemExit(1)
